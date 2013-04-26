@@ -11,4 +11,8 @@ class Tag < ActiveRecord::Base
   def display_name
     name.titleize.gsub("E ", "e")
   end
+
+  def as_json(options)
+    super((options||{}).merge({:only => [:name, :id]}))
+  end
 end

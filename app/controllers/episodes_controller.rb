@@ -8,9 +8,11 @@ class EpisodesController < ApplicationController
     else
       @episodes = Episode.search_published(params[:search], params[:tag_id])
     end
+    @episodes = @episodes.paginate(:page => params[:page], :per_page => episodes_per_page) if params[:format]!='rss'
     respond_to do |format|
-      format.html { @episodes = @episodes.paginate(:page => params[:page], :per_page => episodes_per_page) }
+      format.html 
       format.rss
+      format.json { render :json => @episodes }
     end
   end
 
@@ -20,6 +22,10 @@ class EpisodesController < ApplicationController
       redirect_to episode_url(@episode)
     else
       @comment = Comment.new(:episode => @episode, :user => current_user)
+      respond_to do |format|
+          format.html 
+          format.json { render :json => @episode.to_json(:include => :comments) }
+      end
     end
   end
 
@@ -51,10 +57,14 @@ class EpisodesController < ApplicationController
   private
 
   def episodes_per_page
-    case params[:view]
-    when "list" then 40
-    when "grid" then 24
-    else 10
+    if params[:format] == 'json'
+      25
+    else
+      case params[:view]
+      when "list" then 40
+      when "grid" then 24
+      else 10
+      end
     end
   end
 end

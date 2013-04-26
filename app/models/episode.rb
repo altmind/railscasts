@@ -85,6 +85,10 @@ class Episode < ActiveRecord::Base
     "http://media.railscasts.com/assets/episodes/#{path}/#{asset_name}" + (ext ? ".#{ext}" : "")
   end
 
+  def image_url
+    "/assets/episodes/stills/#{asset_name}.png"
+  end
+
   def padded_position
     position.to_s.rjust(3, "0")
   end
@@ -160,6 +164,12 @@ class Episode < ActiveRecord::Base
     self.class.where("position > ?", position).order("position").first
   end
 
+  def as_json(options )
+    super(((options||{}).merge({:except => [ :updated_at, :created_at]})).merge({
+        :methods => [:files, :image_url, :tags]
+    }))
+  end
+
   private
 
   def self.primitive_search_conditions(query, join)
@@ -171,4 +181,5 @@ class Episode < ActiveRecord::Base
   def set_permalink
     self.permalink = name.downcase.gsub(/[^0-9a-z]+/, ' ').strip.gsub(' ', '-') if name
   end
+
 end
